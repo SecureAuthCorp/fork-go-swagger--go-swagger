@@ -78,6 +78,7 @@ func TestSchemaValueExtractors(t *testing.T) {
 	}
 
 	verifySwaggerOneArgSwaggerTag(t, rxStrFmt, strfmts, validParams, append(invalidParams, "", "  ", " "))
+	verifyStrFmtTrailingPeriod(t, strfmts, validParams)
 	verifySwaggerOneArgSwaggerTag(t, rxModelOverride, models, append(validParams, "", "  ", " "), invalidParams)
 
 	verifySwaggerOneArgSwaggerTag(t, rxAllOf, allOf, append(validParams, "", "  ", " "), invalidParams)
@@ -346,6 +347,18 @@ func verifySwaggerOneArgSwaggerTag(t *testing.T, matcher *regexp.Regexp, prefixe
 			line := pref + param
 			matches := matcher.FindStringSubmatch(line)
 			assert.Empty(t, matches)
+		}
+	}
+}
+
+// go-openapi/strfmt >= 0.26.1 ends its annotations with a period (godot linter)
+func verifyStrFmtTrailingPeriod(t *testing.T, prefixes, validParams []string) {
+	for _, pref := range prefixes {
+		for _, param := range validParams {
+			matches := rxStrFmt.FindStringSubmatch(pref + param + ".")
+			if assert.Len(t, matches, 2) {
+				assert.Equal(t, param, matches[1])
+			}
 		}
 	}
 }
